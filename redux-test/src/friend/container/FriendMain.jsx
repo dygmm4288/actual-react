@@ -2,7 +2,8 @@ import * as actions from "../state";
 import React from "react";
 
 import { getNextFriend } from "../../common/mockData";
-
+import NumberSelect from "../component/NumberSelect";
+import { MAX_AGE_LIMIT, MAX_SHOW_LIMIT } from "../common";
 import FriendList from "../component/FriendList";
 import { connect } from "react-redux";
 
@@ -13,19 +14,50 @@ class FriendMain extends React.Component {
 	};
 	render() {
 		console.log("FriendMain render");
-		const { friends } = this.props;
+		const {
+			friendsWithAgeLimit,
+			friendsWithAgeShowLimit,
+			ageLimit,
+			showLimit,
+			setAgeLimit,
+			setShowLimit
+		} = this.props;
 		return (
 			<div>
 				<button onClick={this.onAdd}>친구 추가</button>
-				<FriendList friends={friends} />
+				<NumberSelect
+					onChange={setAgeLimit}
+					value={ageLimit}
+					options={ageLimitOptions}
+					postfix="세 이하만 보기"
+				/>
+				<FriendList friends={friendsWithAgeLimit} />
+				<NumberSelect
+					onChange={setShowLimit}
+					value={showLimit}
+					options={showLimitOptions}
+					postfix="명 이하만 보기(연령 제한 적용)"
+				/>
+				<FriendList friends={friendsWithAgeShowLimit} />
 			</div>
 		);
 	}
 }
 
 const mapStateToProps = state => {
+	const friends = state.friend.friends;
+	const ageLimit = state.friend.ageLimit;
+	const showLimit = state.friend.showLimit;
+	const friendsWithAgeLimit = friends.filter(
+		friend => friend.age <= ageLimit
+	);
+	const friendsWithAgeShowLimit = friendsWithAgeLimit.slice(0, showLimit);
 	return {
-		friends: state.friend.friends
+		friendsWithAgeShowLimit,
+		friendsWithAgeLimit,
+		friends,
+		ageLimit,
+		showLimit
 	};
 };
 /* const mapDispatchToProps = dispatch => {
@@ -40,4 +72,7 @@ const mapStateToProps = state => {
 /* import * as actions from "../state"; */
 
 /* export default connect(mapStateToProps, mapDispatchToProps)(FriendMain); */
+const ageLimitOptions = [15, 20, 25, MAX_AGE_LIMIT];
+const showLimitOptions = [2, 4, 6, MAX_SHOW_LIMIT];
+
 export default connect(mapStateToProps, actions)(FriendMain);
